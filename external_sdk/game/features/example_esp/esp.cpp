@@ -439,16 +439,13 @@ void c_esp::run_players(view_matrix_t viewmatrix)
         if (task_scheduler)
         {
             float fps_cap = memory->read<float>(task_scheduler + offsets::TaskSchedulerMaxFPS);
-            // FIX: Use snprintf instead of stringstream to avoid allocation
             snprintf(s_string_buffer, sizeof(s_string_buffer), "FPS: %.0f", fps_cap);
             draw.outlined_string(ImVec2(10, 10), s_string_buffer, ImColor(0, 255, 0, 255), ImColor(0, 0, 0, 255), false);
         }
     }
 
-    // FIX: Use cached players instead of calling get_players every frame
     std::vector<uintptr_t> players = get_cached_players(g_main::datamodel);
 
-    // Cache screen dimensions once
     const int screen_width = core.get_screen_width();
     const int screen_height = core.get_screen_height();
 
@@ -478,7 +475,7 @@ void c_esp::run_players(view_matrix_t viewmatrix)
         if (vars::esp::hide_dead && health <= 0.0f)
             continue;
 
-        if (!health || !max_health)
+        if (health <= 0.0f || max_health <= 0.0f)
             continue;
 
         auto player_root = core.find_first_child(model, "HumanoidRootPart");
@@ -489,37 +486,53 @@ void c_esp::run_players(view_matrix_t viewmatrix)
         if (!p_player_root)
             continue;
 
-        auto player_head = core.find_first_child(model, "Head");
-        if (!player_head)
-            continue;
-
-        auto p_player_head = memory->read<uintptr_t>(player_head + offsets::Primitive);
-        if (!p_player_head)
-            continue;
-
         std::string player_name = core.get_instance_name(player);
         if (player_name.empty())
             continue;
 
         vector w_player_root = memory->read<vector>(p_player_root + offsets::Position);
-        vector w_player_head = memory->read<vector>(p_player_head + offsets::Position);
 
         float hip_height = memory->read<float>(humanoid + offsets::HipHeight);
-        vector w_foot_pos = vector(w_player_root.x, w_player_root.y - hip_height, w_player_root.z);
+        if (hip_height <= 0.0f || hip_height > 10.0f)
+            hip_height = 2.0f;
+
+        float height_above_hrp = 2.5f;
+        float height_below_hrp = hip_height + 0.5f;
+
+        vector w_head_top;
+        w_head_top.x = w_player_root.x;
+        w_head_top.y = w_player_root.y + height_above_hrp;
+        w_head_top.z = w_player_root.z;
+
+        vector w_foot_pos;
+        w_foot_pos.x = w_player_root.x;
+        w_foot_pos.y = w_player_root.y - height_below_hrp;
+        w_foot_pos.z = w_player_root.z;
+
+        vector2d s_head_top;
+        if (!core.world_to_screen(w_head_top, s_head_top, viewmatrix))
+            continue;
 
         vector2d s_foot_pos;
         if (!core.world_to_screen(w_foot_pos, s_foot_pos, viewmatrix))
             continue;
 
-        vector2d s_player_head;
-        if (!core.world_to_screen(vector(w_player_head.x, w_player_head.y + 0.5f, w_player_head.z), s_player_head, viewmatrix))
+        float height = s_foot_pos.y - s_head_top.y;
+
+        if (height <= 5.0f || height > 1000.0f)
             continue;
 
-        float height = s_foot_pos.y - s_player_head.y;
-        float width = height * 0.4f;
+        if (s_head_top.x < 0 || s_head_top.x > screen_width || s_head_top.y < 0 || s_head_top.y > screen_height)
+            continue;
 
-        ImVec2 top_left = ImVec2(s_foot_pos.x - (width * 0.5f), s_player_head.y);
-        ImVec2 bottom_right = ImVec2(s_foot_pos.x + (width * 0.5f), s_foot_pos.y);
+        if (s_foot_pos.x < 0 || s_foot_pos.x > screen_width || s_foot_pos.y < 0 || s_foot_pos.y > screen_height)
+            continue;
+
+        float width = height * 0.5f;
+        float center_x = s_head_top.x;
+
+        ImVec2 top_left = ImVec2(center_x - (width * 0.5f), s_head_top.y);
+        ImVec2 bottom_right = ImVec2(center_x + (width * 0.5f), s_foot_pos.y);
 
         if (vars::esp::show_box)
         {
@@ -528,7 +541,12 @@ void c_esp::run_players(view_matrix_t viewmatrix)
 
         if (vars::esp::show_tracers)
         {
-            draw.line(ImVec2(screen_width * 0.5f, (float)screen_height), ImVec2(s_foot_pos.x, s_foot_pos.y), vars::esp::esp_tracer_color, 1.0f);
+            draw.line(
+                ImVec2(screen_width * 0.5f, (float)screen_height),
+                ImVec2(center_x, s_foot_pos.y),
+                vars::esp::esp_tracer_color,
+                1.0f
+            );
         }
 
         float health_percent = fmaxf(fminf(health / max_health, 1.0f), 0.0f);
@@ -538,8 +556,8 @@ void c_esp::run_players(view_matrix_t viewmatrix)
             0, 255
         );
 
-        float text_y_offset = top_left.y - 15;
-        draw.outlined_string(ImVec2(s_foot_pos.x, text_y_offset), player_name.c_str(), vars::esp::esp_name_color, ImColor(0, 0, 0, 255), true);
+        float text_y = top_left.y - 15.0f;
+        draw.outlined_string(ImVec2(center_x, text_y), player_name.c_str(), vars::esp::esp_name_color, ImColor(0, 0, 0, 255), true);
 
         if (vars::esp::show_weapon)
         {
@@ -549,42 +567,39 @@ void c_esp::run_players(view_matrix_t viewmatrix)
                 std::string weapon_name = core.get_instance_name(equipped_tool);
                 if (!weapon_name.empty())
                 {
-                    text_y_offset -= 15;
-                    draw.outlined_string(ImVec2(s_foot_pos.x, text_y_offset), weapon_name.c_str(), ImColor(255, 165, 0, 255), ImColor(0, 0, 0, 255), true);
+                    text_y -= 15.0f;
+                    draw.outlined_string(ImVec2(center_x, text_y), weapon_name.c_str(), ImColor(255, 165, 0, 255), ImColor(0, 0, 0, 255), true);
                 }
             }
         }
 
         if (vars::esp::show_health)
         {
-            // FIX: Use snprintf instead of stringstream
             snprintf(s_string_buffer, sizeof(s_string_buffer), "[HP: %.0f]", health);
-            draw.outlined_string(ImVec2(s_foot_pos.x, s_foot_pos.y + 5), s_string_buffer, health_color, ImColor(0, 0, 0, 255), true);
+            draw.outlined_string(ImVec2(center_x, s_foot_pos.y + 5.0f), s_string_buffer, health_color, ImColor(0, 0, 0, 255), true);
         }
 
         if (vars::esp::show_distance)
         {
-            uintptr_t local_player_character_model = core.find_first_child(
-                core.find_first_child_class(g_main::datamodel, "Workspace"),
-                core.get_instance_name(g_main::localplayer)
-            );
-            if (local_player_character_model)
+            uintptr_t workspace = core.find_first_child_class(g_main::datamodel, "Workspace");
+            uintptr_t local_char = core.find_first_child(workspace, core.get_instance_name(g_main::localplayer));
+
+            if (local_char)
             {
-                auto local_player_root = core.find_first_child(local_player_character_model, "HumanoidRootPart");
-                if (local_player_root)
+                auto local_root = core.find_first_child(local_char, "HumanoidRootPart");
+                if (local_root)
                 {
-                    auto p_local_player_root = memory->read<uintptr_t>(local_player_root + offsets::Primitive);
-                    if (p_local_player_root)
+                    auto p_local_root = memory->read<uintptr_t>(local_root + offsets::Primitive);
+                    if (p_local_root)
                     {
-                        vector w_local_player_root = memory->read<vector>(p_local_player_root + offsets::Position);
-                        float distance = sqrtf(
-                            powf(w_player_root.x - w_local_player_root.x, 2) +
-                            powf(w_player_root.y - w_local_player_root.y, 2) +
-                            powf(w_player_root.z - w_local_player_root.z, 2)
-                        );
-                        // FIX: Use snprintf instead of stringstream
+                        vector local_pos = memory->read<vector>(p_local_root + offsets::Position);
+                        float dx = w_player_root.x - local_pos.x;
+                        float dy = w_player_root.y - local_pos.y;
+                        float dz = w_player_root.z - local_pos.z;
+                        float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+
                         snprintf(s_string_buffer, sizeof(s_string_buffer), "[%.0fm]", distance);
-                        draw.outlined_string(ImVec2(s_foot_pos.x, s_foot_pos.y + 20), s_string_buffer, vars::esp::esp_distance_color, ImColor(0, 0, 0, 255), true);
+                        draw.outlined_string(ImVec2(center_x, s_foot_pos.y + 20.0f), s_string_buffer, vars::esp::esp_distance_color, ImColor(0, 0, 0, 255), true);
                     }
                 }
             }
@@ -592,45 +607,91 @@ void c_esp::run_players(view_matrix_t viewmatrix)
 
         if (vars::esp::show_skeleton)
         {
-            struct BoneInfo { const char* name; const char* parent_name; };
-            BoneInfo skeleton_bones[] = {
-                { "Head", "Torso" },
-                { "Torso", "HumanoidRootPart" },
-                { "Right Arm", "Torso" },
-                { "Left Arm", "Torso" },
-                { "Right Leg", "Torso" },
-                { "Left Leg", "Torso" }
-            };
-            std::unordered_map<std::string, vector2d> bone_screen_positions;
-            for (const auto& bone_info : skeleton_bones)
-            {
-                uintptr_t bone_part = core.find_first_child(model, bone_info.name);
-                if (bone_part)
-                {
-                    uintptr_t p_bone_part = memory->read<uintptr_t>(bone_part + offsets::Primitive);
-                    if (p_bone_part)
-                    {
-                        vector w_bone_pos = memory->read<vector>(p_bone_part + offsets::Position);
-                        vector2d s_bone_pos;
-                        if (core.world_to_screen(w_bone_pos, s_bone_pos, viewmatrix))
-                        {
-                            bone_screen_positions[bone_info.name] = s_bone_pos;
-                        }
-                    }
-                }
-            }
-            for (const auto& bone_info : skeleton_bones)
-            {
-                if (bone_screen_positions.count(bone_info.name) && bone_screen_positions.count(bone_info.parent_name))
-                {
-                    draw.line(
-                        ImVec2(bone_screen_positions[bone_info.name].x, bone_screen_positions[bone_info.name].y),
-                        ImVec2(bone_screen_positions[bone_info.parent_name].x, bone_screen_positions[bone_info.parent_name].y),
-                        vars::esp::esp_skeleton_color, 1.0f
-                    );
-                }
-            }
+            DrawSkeleton(model, viewmatrix);
         }
+    }
+}
+void c_esp::DrawSkeleton(uintptr_t model, view_matrix_t viewmatrix)
+{
+    bool is_r15 = (core.find_first_child(model, "UpperTorso") != 0);
+
+    auto get_bone_pos = [&](const char* name, vector2d& out) -> bool {
+        uintptr_t bone = core.find_first_child(model, name);
+        if (!bone) return false;
+
+        uintptr_t prim = memory->read<uintptr_t>(bone + offsets::Primitive);
+        if (!prim) return false;
+
+        vector world = memory->read<vector>(prim + offsets::Position);
+        return core.world_to_screen(world, out, viewmatrix);
+        };
+
+    if (is_r15)
+    {
+        vector2d head, upper_torso, lower_torso;
+        vector2d left_upper_arm, left_lower_arm, left_hand;
+        vector2d right_upper_arm, right_lower_arm, right_hand;
+        vector2d left_upper_leg, left_lower_leg, left_foot;
+        vector2d right_upper_leg, right_lower_leg, right_foot;
+
+        bool has_head = get_bone_pos("Head", head);
+        bool has_upper = get_bone_pos("UpperTorso", upper_torso);
+        bool has_lower = get_bone_pos("LowerTorso", lower_torso);
+
+        get_bone_pos("LeftUpperArm", left_upper_arm);
+        get_bone_pos("LeftLowerArm", left_lower_arm);
+        get_bone_pos("LeftHand", left_hand);
+        get_bone_pos("RightUpperArm", right_upper_arm);
+        get_bone_pos("RightLowerArm", right_lower_arm);
+        get_bone_pos("RightHand", right_hand);
+        get_bone_pos("LeftUpperLeg", left_upper_leg);
+        get_bone_pos("LeftLowerLeg", left_lower_leg);
+        get_bone_pos("LeftFoot", left_foot);
+        get_bone_pos("RightUpperLeg", right_upper_leg);
+        get_bone_pos("RightLowerLeg", right_lower_leg);
+        get_bone_pos("RightFoot", right_foot);
+
+        ImColor col = vars::esp::esp_skeleton_color;
+        float thickness = 1.5f;
+
+        if (has_head && has_upper) draw.line(ImVec2(head.x, head.y), ImVec2(upper_torso.x, upper_torso.y), col, thickness);
+        if (has_upper && has_lower) draw.line(ImVec2(upper_torso.x, upper_torso.y), ImVec2(lower_torso.x, lower_torso.y), col, thickness);
+
+        draw.line(ImVec2(upper_torso.x, upper_torso.y), ImVec2(left_upper_arm.x, left_upper_arm.y), col, thickness);
+        draw.line(ImVec2(left_upper_arm.x, left_upper_arm.y), ImVec2(left_lower_arm.x, left_lower_arm.y), col, thickness);
+        draw.line(ImVec2(left_lower_arm.x, left_lower_arm.y), ImVec2(left_hand.x, left_hand.y), col, thickness);
+
+        draw.line(ImVec2(upper_torso.x, upper_torso.y), ImVec2(right_upper_arm.x, right_upper_arm.y), col, thickness);
+        draw.line(ImVec2(right_upper_arm.x, right_upper_arm.y), ImVec2(right_lower_arm.x, right_lower_arm.y), col, thickness);
+        draw.line(ImVec2(right_lower_arm.x, right_lower_arm.y), ImVec2(right_hand.x, right_hand.y), col, thickness);
+
+        draw.line(ImVec2(lower_torso.x, lower_torso.y), ImVec2(left_upper_leg.x, left_upper_leg.y), col, thickness);
+        draw.line(ImVec2(left_upper_leg.x, left_upper_leg.y), ImVec2(left_lower_leg.x, left_lower_leg.y), col, thickness);
+        draw.line(ImVec2(left_lower_leg.x, left_lower_leg.y), ImVec2(left_foot.x, left_foot.y), col, thickness);
+
+        draw.line(ImVec2(lower_torso.x, lower_torso.y), ImVec2(right_upper_leg.x, right_upper_leg.y), col, thickness);
+        draw.line(ImVec2(right_upper_leg.x, right_upper_leg.y), ImVec2(right_lower_leg.x, right_lower_leg.y), col, thickness);
+        draw.line(ImVec2(right_lower_leg.x, right_lower_leg.y), ImVec2(right_foot.x, right_foot.y), col, thickness);
+    }
+    else
+    {
+        vector2d head, torso, left_arm, right_arm, left_leg, right_leg;
+
+        get_bone_pos("Head", head);
+        get_bone_pos("Torso", torso);
+        get_bone_pos("Left Arm", left_arm);
+        get_bone_pos("Right Arm", right_arm);
+        get_bone_pos("Left Leg", left_leg);
+        get_bone_pos("Right Leg", right_leg);
+
+        ImColor col = vars::esp::esp_skeleton_color;
+        float thickness = 1.5f;
+
+        draw.line(ImVec2(head.x, head.y), ImVec2(torso.x, torso.y), col, thickness);
+        draw.line(ImVec2(torso.x, torso.y), ImVec2(left_arm.x, left_arm.y), col, thickness);
+        draw.line(ImVec2(torso.x, torso.y), ImVec2(right_arm.x, right_arm.y), col, thickness);
+        draw.line(ImVec2(torso.x, torso.y), ImVec2(left_leg.x, left_leg.y), col, thickness);
+        draw.line(ImVec2(torso.x, torso.y), ImVec2(right_leg.x, right_leg.y), col, thickness);
     }
 }
 

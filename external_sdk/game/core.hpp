@@ -28,8 +28,8 @@ public:
     int get_screen_width( ) { if ( !screen_width ) screen_width = GetSystemMetrics( SM_CXSCREEN ); return screen_width; }
     int get_screen_height( ) { if ( !screen_height ) screen_height = GetSystemMetrics( SM_CYSCREEN ); return screen_height; }
 private:
-    int screen_width = NULL;
-    int screen_height = NULL;
+    int screen_width = 0;
+    int screen_height = 0;
 };
 
 inline c_core core;

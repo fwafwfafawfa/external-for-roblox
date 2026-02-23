@@ -105,6 +105,12 @@
     <ClCompile Include="game\features\airswim\airswim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="game\features\desync\desync.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game\features\desync\desync_worker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.hpp">
@@ -213,6 +219,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tphandler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game\features\desync\desync.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game\features\desync\desync_worker.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

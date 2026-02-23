@@ -46,6 +46,20 @@ public:
         return WriteProcessMemory(process_handle, reinterpret_cast<LPVOID>(address), &buffer, sizeof(T), nullptr);
     }
 
+    // Try read with explicit success result and bytes-read check
+    template <typename T>
+    bool try_read(uintptr_t address, T& out) {
+        if (g_safe_mode) return false;
+        if (!address || address < 0x10000) return false;
+        if (!process_handle || process_handle == INVALID_HANDLE_VALUE) return false;
+
+        SIZE_T bytesRead = 0;
+        if (!ReadProcessMemory(process_handle, reinterpret_cast<LPCVOID>(address), &out, sizeof(T), &bytesRead)) {
+            return false;
+        }
+        return bytesRead == sizeof(T);
+    }
+
 private:
     HANDLE process_handle = NULL;
     int32_t process_id = 0;

@@ -168,11 +168,24 @@ namespace vars
     namespace misc
     {
         inline bool show_workspace_viewer = false;
-        inline float teleport_offset_y = 5.0f;
-        inline float teleport_offset_z = 3.0f;
+        inline float teleport_offset_x = 0.0f;
+        inline float teleport_offset_y = 3.0f;  // Default slight Y offset to spawn above target
+        inline float teleport_offset_z = 0.0f;
         inline uintptr_t selected_player_for_info = 0;
         inline std::string spectating_player_name = "";
         inline uintptr_t spectating_camera = 0;
+    }
+
+    // Desync controls
+    namespace desync
+    {
+        inline bool enabled = false; // Master toggle for desync feature
+        // When true, writes a float value that corresponds to "yes" in the python script
+        inline bool desync_on = false; // true = yes, false = no
+        // Offset from module base
+        inline uintptr_t offset = 0x69F6E10;
+        // Sleep interval in milliseconds for writes
+        inline int interval_ms = 200;
     }
 
     namespace bss
@@ -240,5 +253,12 @@ namespace vars
         inline float lag_interval = 2.0f; // How often to lag (seconds)
         inline bool auto_lag = false; // Automatically lag at intervals
         inline bool manual_lag = true; // Manual lag on key press
+    }
+
+    // New exploits namespace
+    namespace exploits
+    {
+        inline bool enabled = false; // Master toggle for exploits
+        inline bool friendly_fire = false; // Toggle to enable friendly fire
     }
 }

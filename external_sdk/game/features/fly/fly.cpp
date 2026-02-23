@@ -73,7 +73,7 @@ void c_fly::run()
 
     if (mag > 0.001f)
     {
-        float speedMultiplier = vars::fly::speed * 25.0f; // 25 feels perfect (WalkSpeed 16 → ~400 studs/s at speed=16)
+        float speedMultiplier = vars::fly::speed * 25.0f;
 
         vector velocity;
         velocity.x = (finalDir.x / mag) * speedMultiplier;

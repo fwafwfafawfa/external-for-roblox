@@ -151,6 +151,8 @@
     <ClCompile Include="addons\kernel\memory.cpp" />
     <ClCompile Include="game\core.cpp" />
     <ClCompile Include="game\features\airswim\airswim.cpp" />
+    <ClCompile Include="game\features\desync\desync.cpp" />
+    <ClCompile Include="game\features\desync\desync_worker.cpp" />
     <ClCompile Include="game\features\example_esp\esp.cpp" />
     <ClCompile Include="game\features\fly\fly.cpp" />
     <ClCompile Include="game\features\handler.cpp" />
@@ -187,6 +189,8 @@
     <ClInclude Include="addons\kernel\memory.hpp" />
     <ClInclude Include="game\core.hpp" />
     <ClInclude Include="game\features\airswim\airswim.hpp" />
+    <ClInclude Include="game\features\desync\desync.hpp" />
+    <ClInclude Include="game\features\desync\desync_worker.hpp" />
     <ClInclude Include="game\features\example_esp\esp.hpp" />
     <ClInclude Include="game\features\fly\fly.hpp" />
     <ClInclude Include="game\features\handler.hpp" />

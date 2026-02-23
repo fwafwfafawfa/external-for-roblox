@@ -1,7 +1,8 @@
 #include "main.hpp"
 #include "handlers/themes/theme.hpp"
-#include "features/example_esp/esp.hpp"  // ADD THIS
-#include "tphandler.hpp" // Add this include
+#include "features/example_esp/esp.hpp"
+#include "tphandler.hpp"
+#include "game/offsets/offsets.hpp"  // Make sure this is included
 
 void cleanup()
 {
@@ -80,6 +81,9 @@ void reinitialize_game_pointers()
 int main()
 {
     atexit(cleanup);
+
+    util.m_print("Starting...");
+
     memory = new c_memory("RobloxPlayerBeta.exe");
 
     if (!memory)
@@ -87,6 +91,17 @@ int main()
         util.m_print("Failed to find Roblox, run the game.");
         std::cin.get();
         return 0;
+    }
+
+    // Update offsets from remote server BEFORE using them
+    util.m_print("Current offsets version: %s", offsets::ClientVersion.c_str());
+    util.m_print("Checking for offset updates...");
+
+    if (offsets::update_offsets()) {
+        util.m_print("Offsets updated! New version: %s", offsets::ClientVersion.c_str());
+    }
+    else {
+        util.m_print("Using existing offsets. Version: %s", offsets::ClientVersion.c_str());
     }
 
     config.load("settings.ini");

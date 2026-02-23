@@ -79,6 +79,7 @@ public:
     static std::atomic<bool> shutdown_requested;
     static void shutdown();
     static void cleanup_vis_cache();
+    void DrawSkeleton(uintptr_t model, view_matrix_t viewmatrix);
 
     bool is_visible(const vector& from, const vector& to, uintptr_t target_model);
     bool is_visible(const vector& from, const vector& head, const vector& torso, const vector& pelvis, const vector& left_foot, const vector& right_foot, uintptr_t target_model);

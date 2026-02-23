@@ -3,6 +3,7 @@
 #include "../vars.hpp"
 #include "../themes/theme.hpp"
 #include "../../game/features/player_info/player_info.hpp"
+#include "../../game/features/desync/desync_worker.hpp"
 
 static std::string virtual_key_to_string(int virtual_key)
 {
@@ -384,6 +385,24 @@ void c_menu::run_main_window()
             ImGui::SliderFloat("Teleport Offset Z", &vars::misc::teleport_offset_z, -20.0f, 20.0f);
             ImGui::Checkbox("Anti-AFK", &vars::anti_afk::toggled);
             ImGui::SliderFloat("AFK Interval", &vars::anti_afk::interval, 5.0f, 300.0f);
+
+            // Desync UI
+            ImGui::Separator();
+            ImGui::Text("Desync");
+            ImGui::Checkbox("Enable Desync", &vars::desync::enabled);
+            ImGui::Checkbox("Desync On (write 0.0)", &vars::desync::desync_on);
+            ImGui::InputInt("Desync Interval ms", &vars::desync::interval_ms);
+
+            // Start/stop worker based on enabled state
+            if (vars::desync::enabled) {
+                if (!desync_worker::running()) {
+                    desync_worker::start();
+                }
+            } else {
+                if (desync_worker::running()) {
+                    desync_worker::stop();
+                }
+            }
 
             if (ImGui::Button("Fun Button"))
             {
