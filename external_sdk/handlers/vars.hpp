@@ -39,7 +39,6 @@ namespace vars
         inline bool chams_enemies_only = true;
         inline float chams_transparency = 0.5f;
         inline float chams_opacity = 0.5f;
-        inline bool show_vicious = true;
 
         inline ImColor esp_box_color = ImColor(255, 255, 255, 255);
         inline ImColor esp_name_color = ImColor(255, 255, 255, 255);
@@ -188,57 +187,8 @@ namespace vars
         inline int interval_ms = 200;
     }
 
-    namespace bss
-    {
-        struct ServerEntry {
-            std::string job_id;
-            std::chrono::steady_clock::time_point visit_time;
-        };
-
-        inline std::vector<std::string> blacklisted_friends;
-        inline char friend_input_buffer[64] = "";
-        inline bool vicious_hunter = false;
-        inline bool vicious_found = false;
-        inline bool is_hopping = false;
-        inline bool vicious_esp = true;
-        inline int servers_checked = 0;
-        inline float check_delay = 5.0f;
-        inline float server_load_delay = 15.0f;
-        inline std::vector<ServerEntry> visited_servers;  // Changed from vector<string>
-        inline std::string current_job_id = "";
-        inline bool avoid_friends = true;
-        inline float server_blacklist_time = 300.0f; // 5 minutes default
-        
-        inline bool auto_teleport = false;
-        inline bool float_to_vicious = false;
-        inline float float_speed = 50.0f;
-        inline bool is_floating = false;
-        
-        // USE FLOATS ONLY - Delete "inline vector target_pos..."
-        inline float target_x = 0.0f;
-        inline float target_y = 0.0f;
-        inline float target_z = 0.0f;
-        
-        inline bool webhook_enabled = false;
-        inline std::string webhook_url = "";
-        inline bool need_hive_first = true;      // Enable going to hive first
-        inline bool going_to_hive = false;       // Currently going to hive
-        inline bool hive_claimed = false;        // Already got hive
-        inline float hive_wait_time = 3.0f;      // Seconds to wait at hive
-        inline float post_hop_delay = 11.0f;
-        extern float stored_vicious_x;
-        extern float stored_vicious_y;
-        extern float stored_vicious_z;
-        inline bool test_hive_claim = false;
-        inline int vicious_kills = 0;
-        inline float session_start_time = 0;
-        inline bool session_active = false;
-
-        // Vicious tracking
-        inline bool vicious_alive = false;
-        inline bool tracking_vicious = false;
-    }
-
+    // Minimal Bee Swarm Simulator (BSS) stubs to satisfy remaining references
+    // All features are disabled by default.
     namespace anti_afk
     {
         inline bool toggled = false;

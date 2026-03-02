@@ -13,7 +13,6 @@
 
 void c_feature_handler::start(uintptr_t datamodel)
 {
-    if (vars::bss::is_hopping) return;
     if (!memory) return;
     if (!g_main::datamodel) return;
     if (!g_main::localplayer) return;
@@ -37,15 +36,6 @@ void c_feature_handler::start(uintptr_t datamodel)
         if (!roblox_window) roblox_window = FindWindowA("WINDOWSCLIENT", NULL);
     }
 
-    // ===== ALWAYS RUN =====
-    esp.float_to_target();
-    esp.run_vicious_hunter();
-    esp.test_hive_claiming();
-    esp.track_vicious_status();    // Track if Vicious exists
-    esp.stay_on_vicious();         // Stay on top of it
-    esp.check_vicious_death();     // Detect kill & hop
-    misc.run_anti_afk();
-    esp.cleanup_old_servers();
 
     // ===== ONLY IF FOCUSED =====
     bool roblox_focused = (roblox_window && GetForegroundWindow() == roblox_window);
@@ -60,7 +50,6 @@ void c_feature_handler::start(uintptr_t datamodel)
 
     esp.run_aimbot(viewmatrix);
     esp.draw_hitbox_esp(viewmatrix);
-    esp.run_vicious_esp(viewmatrix);          // Show stats box
 
     speed_hack::run();
     freecam.enabled = vars::freecam::toggled;

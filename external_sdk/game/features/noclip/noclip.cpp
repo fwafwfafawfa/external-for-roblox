@@ -14,7 +14,7 @@ void noclip_thread_func()
 
     while (!s_should_stop)
     {
-        bool want = vars::noclip::toggled || vars::bss::vicious_hunter;
+        bool want = vars::noclip::toggled;
 
         if (!want || !g_main::localplayer)
         {
@@ -68,7 +68,7 @@ void noclip_thread_func()
 
 void c_noclip::run()
 {
-    bool want = vars::noclip::toggled || vars::bss::vicious_hunter;
+    bool want = vars::noclip::toggled;
 
     if (want && !s_thread_running)
     {

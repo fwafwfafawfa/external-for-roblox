@@ -175,7 +175,6 @@ public:
 
                         if (g_main::datamodel != 0 && g_main::localplayer != 0) {
                             update_cache();
-                            vars::bss::is_hopping = false;
                             util.m_print("tp_handler: SUCCESS! Pointers found.");
                             break;
                         }

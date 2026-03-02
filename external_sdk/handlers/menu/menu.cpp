@@ -127,7 +127,6 @@ void c_menu::run_main_window()
             ImGui::Checkbox("Show FPS (broken)", &vars::esp::show_fps);
             ImGui::Checkbox("Hide Teammates", &vars::esp::hide_teammates);
             ImGui::Checkbox("Hide Dead", &vars::esp::hide_dead);
-            ImGui::Checkbox("Vicious Bee ESP", &vars::esp::show_vicious);
 
             ImGui::ColorEdit4("Box Color", (float*)&vars::esp::esp_box_color);
             ImGui::ColorEdit4("Tracer Color", (float*)&vars::esp::esp_tracer_color);
@@ -439,87 +438,6 @@ void c_menu::run_main_window()
 
             ImGui::EndTabItem();
         }
-
-        if (ImGui::BeginTabItem("BSS"))
-        {
-            ImGui::Text("Bee Swarm Simulator");
-            ImGui::Separator();
-
-            ImGui::Text("ESP");
-            ImGui::Checkbox("Vicious Bee ESP", &vars::bss::vicious_esp);
-
-            ImGui::Separator();
-
-            ImGui::Text("Vicious Hunter");
-            ImGui::Checkbox("Enable Hunter", &vars::bss::vicious_hunter);
-            ImGui::Checkbox("Float To Vicious", &vars::bss::float_to_vicious);
-            ImGui::Checkbox("Get Hive First", &vars::bss::need_hive_first);
-            ImGui::SliderFloat("Float Speed", &vars::bss::float_speed, 50.0f, 200.0f);
-            ImGui::SliderFloat("Hive Wait Time", &vars::bss::hive_wait_time, 1.0f, 10.0f);
-            ImGui::SliderFloat("Server Load Delay", &vars::bss::server_load_delay, 3.0f, 20.0f);
-            ImGui::SliderFloat("Rejoin Delay", &vars::bss::post_hop_delay, 5.0f, 30.0f, "%.0f sec");
-            ImGui::Text("(Wait time before rejoining - prevents 'file saving' error)");
-            ImGui::Checkbox("[DEBUG] Test Hive Claiming", &vars::bss::test_hive_claim);
-
-            ImGui::Separator();
-
-            ImGui::Text("Status");
-            ImGui::Text("Servers Checked: %d", vars::bss::servers_checked);
-            ImGui::Text("Kills: %d", vars::bss::vicious_kills);
-
-            // Declare these only ONCE
-            float session_time = esp.get_session_time();
-            int mins = (int)(session_time / 60);
-            int secs = (int)session_time % 60;
-            ImGui::Text("Session Time: %02d:%02d", mins, secs);
-
-            int active_blacklist = esp.get_active_blacklist_count();
-            ImGui::Text("Blacklisted Servers: %d", active_blacklist);
-
-            // REMOVED duplicate declarations of session_time, mins, secs here
-
-            if (ImGui::Button("Clear Blacklist"))
-            {
-                vars::bss::visited_servers.clear();
-                util.m_print("[Server] Cleared server blacklist");
-            }
-
-            if (vars::bss::going_to_hive)
-            {
-                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Going to Hive...");
-            }
-            else if (vars::bss::is_floating)
-            {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Flying to Vicious...");
-            }
-            else if (vars::bss::vicious_found)
-            {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "VICIOUS FOUND!");
-            }
-            else if (vars::bss::is_hopping)
-            {
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Hopping...");
-            }
-            else if (vars::bss::vicious_hunter)
-            {
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Searching...");
-            }
-
-            ImGui::Spacing();
-
-            if (ImGui::Button("Reset Hunter"))
-            {
-                vars::bss::vicious_found = false;
-                vars::bss::is_hopping = false;
-                vars::bss::is_floating = false;
-                vars::bss::going_to_hive = false;
-                vars::bss::hive_claimed = false;
-                vars::bss::servers_checked = 0;
-            }
-
-            ImGui::EndTabItem();
-        }
-
         // ==================== THEME TAB ====================
         if (ImGui::BeginTabItem("Theme"))
         {

@@ -59,23 +59,7 @@ public:
     void run_aimbot(view_matrix_t viewmatrix);
     void draw_hitbox_esp(view_matrix_t viewmatrix);
     void draw_minimap(view_matrix_t viewmatrix);
-    void run_vicious_esp(view_matrix_t viewmatrix);
-    void run_vicious_hunter();
-    void server_hop();
-    void load_hunter_state();
-    void float_to_target();
-    void test_hive_claiming();
-    void track_vicious_status();
-    void stay_on_vicious();
-    void check_vicious_death();
-    void display_stats();
-    float get_session_time();
-    std::string get_current_job_id();
-    bool is_server_visited(const std::string& job_id);
-    void mark_server_visited();
-    bool has_friends_in_server();
-    void cleanup_old_servers();  // Add this
-    int get_active_blacklist_count();  // And this
+    // Vicious / Bee Swarm Simulator functions removed
     static std::atomic<bool> shutdown_requested;
     static void shutdown();
     static void cleanup_vis_cache();

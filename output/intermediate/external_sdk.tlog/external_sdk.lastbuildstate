@@ -1,2 +1,2 @@
-PlatformToolSet=v143:VCToolArchitecture=Native64Bit:VCToolsVersion=14.44.35207:TargetPlatformVersion=10.0.26100.0:VcpkgTriplet=x64-windows:
-Release|x64|C:\Users\lordnniky\Downloads\external_sdk-master\external_sdk-master\|
+PlatformToolSet=v145:VCToolArchitecture=Native64Bit:VCToolsVersion=14.50.35717:VCServicingVersionCompilers=14.50.35725:TargetPlatformVersion=10.0.26100.0:
+Debug|x64|C:\Users\nikky\source\repos\external_sdk1\|
